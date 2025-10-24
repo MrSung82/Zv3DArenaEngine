@@ -93,4 +93,16 @@ Purpose: blank file for headers.
 #		define ZVD_PLATFORM_ARCH_STRINGW L"Windows-x86"
 #	endif
 
+#elif defined(__linux) || defined(__linux__)
+#	define ZVD_PLATFORM_LINUX 1
+#	define ZVD_PLATFORM_STRINGA "Linux"
+#	define ZVD_PLATFORM_STRINGW L"Linux"
+#	define ZVD_PLATFORM_DESKTOP 1
+#	if defined(ZVD_ARCH_X86_64)
+#		define ZVD_PLATFORM_ARCH_STRINGA "Linux-x64"
+#		define ZVD_PLATFORM_ARCH_STRINGW L"Linux-x64"
+#	elif defined(ZVD_ARCH_X86)
+#		define ZVD_PLATFORM_ARCH_STRINGA "Linux-x86"
+#		define ZVD_PLATFORM_ARCH_STRINGW L"Linux-x86"
+#	endif
 #endif // eof Platform OS
