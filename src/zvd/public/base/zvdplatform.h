@@ -54,10 +54,14 @@ Purpose: blank file for headers.
 #	define ZVD_ARCH_ARM32 1
 #elif defined(__aarch64__) || defined(_M_ARM64)
 #	define ZVD_ARCH_ARM64 1
+#else
+#	error "Unsupported architecture"
 #endif
 
 #if defined(ZVD_ARCH_X86_64) || defined(ZVD_ARCH_X86) || defined(ZVD_ARCH_ARM32) || defined(ZVD_ARCH_ARM64)
 #	define ZVD_LITTLE_ENDIAN 1
+#else
+#	error "Big endianness is not supported"
 #endif
 
 #if defined(__CYGWIN__)
@@ -105,4 +109,31 @@ Purpose: blank file for headers.
 #		define ZVD_PLATFORM_ARCH_STRINGA "Linux-x86"
 #		define ZVD_PLATFORM_ARCH_STRINGW L"Linux-x86"
 #	endif
+
+#else
+#	error "Unsupported platform"
+
 #endif // eof Platform OS
+
+
+#if defined(_WIN64) || defined(__LP64__)
+#define ZVD_PTR_SIZE 8
+#else
+#define ZVD_PTR_SIZE 4
+#endif
+
+#if defined(ZVD_ARCH_X86_64) || defined(ZVD_ARCH_X86) || defined(ZVD_ARCH_ARM32) || defined(ZVD_ARCH_ARM64)
+#define ZVD_WORD_SIZE ZVD_PTR_SIZE
+#endif
+
+#if defined(ZVD_PLATFORM_WINDOWS) || defined(ZVD_PLATFORM_LINUX)
+#define ZVD_MIN_MALLOC_ALIGNMENT (ZVD_PTR_SIZE * 2)
+#endif
+
+
+// Cache line (conservative)
+#if defined(ZVD_ARCH_X86_64) || defined(ZVD_ARCH_ARM64)
+#	define ZVD_CACHE_LINE_SIZE 64
+#else
+#	define ZVD_CACHE_LINE_SIZE 32
+#endif
