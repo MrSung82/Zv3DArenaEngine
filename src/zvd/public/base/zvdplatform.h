@@ -137,3 +137,12 @@ Purpose: blank file for headers.
 #else
 #	define ZVD_CACHE_LINE_SIZE 32
 #endif
+
+
+#if !defined(ZVD_BIG_ENDIAN) && !defined(ZVD_LITTLE_ENDIAN)
+#	define ZVD_LITTLE_ENDIAN 1
+#endif
+
+#if defined(ZVD_BIG_ENDIAN)
+#	error "Big-endian platforms are not supported"
+#endif
