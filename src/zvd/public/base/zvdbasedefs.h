@@ -254,3 +254,18 @@ namespace zvd
 #endif
 
 } // namespace zvd
+
+
+#ifdef ZVD_PLATFORM_WINDOWS
+
+/** ZVD_T(s) - Windows - specific macro to handle ANSI / Unicode string literals.
+* Expands to L"..." if UNICODE is defined (wide string), otherwise to "..." (narrow string).
+* Only available on Windows, as Linux uses UTF-8 narrow strings exclusively.
+*/ 
+#   ifdef UNICODE
+#       define ZVD_T(s)    L##s
+#   else
+#       define ZVD_T(s)    s
+#   endif
+
+#endif
