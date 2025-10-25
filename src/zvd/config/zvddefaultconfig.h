@@ -46,3 +46,9 @@ Purpose: blank file for headers.
 
 #pragma once
 
+
+#ifndef ZVD_DEBUG
+#	if defined(_DEBUG) || defined(DEBUG) || defined(__DEBUG__)
+#		define ZVD_DEBUG
+#	endif
+#endif
