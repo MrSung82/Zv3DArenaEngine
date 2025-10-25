@@ -235,7 +235,7 @@ Usage
 #	pragma message("C++98")
 
 #else
-#error "No any standart of C++ detected. You can comment this line for your own risk!"
+#   error "No any standart of C++ detected. You can comment this line for your own risk!"
 //#define ZVD_CPP __cplusplus
 //#define ZVD_CPP98 // 98/03 ?
 
@@ -245,6 +245,48 @@ Usage
 #   error "No required C++ standard is supported by current compiler!"
 #endif
 
-#ifndef ZVD_CPP20
-#error "C++20 or later required. Use /std:c++20 or -std=c++20 and /Zc:__cplusplus on MSVC."
+#ifndef ZVD_CPP17
+#   error "C++17 or later required. Use /std:c++17 or -std=c++17 and /Zc:__cplusplus on MSVC."
 #endif
+
+
+// force inline
+#if defined(ZVD_COMPILER_MSVC)
+#   define ZVD_FORCE_INLINE __forceinline
+#elif defined(ZVD_COMPILER_GCC) || defined(ZVD_COMPILER_CLANG)
+#   define ZVD_FORCE_INLINE inline __attribute__((always_inline))
+#else
+#   define ZVD_FORCE_INLINE inline
+#endif
+
+
+#if defined(ZVD_COMPILER_GCC) || defined(ZVD_COMPILER_CLANG)
+#   define ZVD_LIKELY(x)   __builtin_expect(!!(x), 1)
+#   define ZVD_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#   define ZVD_LIKELY(x)   (x)
+#   define ZVD_UNLIKELY(x) (x)
+#endif
+
+
+#if defined(__has_include)
+#   define ZVD_HAS_INCLUDE(x) __has_include(x)
+#else
+#   define ZVD_HAS_INCLUDE(x) 0
+#endif
+
+
+// warning on/off
+#if defined(ZVD_COMPILER_MSVC)
+#   define ZVD_DISABLE_WARNING(w) __pragma(warning(push)) __pragma(warning(disable:w))
+#   define ZVD_RESTORE_WARNING()  __pragma(warning(pop))
+#elif defined(ZVD_COMPILER_GCC) || defined(ZVD_COMPILER_CLANG)
+#   define ZVD_DISABLE_WARNING(w) _Pragma("GCC diagnostic push") _Pragma(#w)
+#   define ZVD_RESTORE_WARNING()  _Pragma("GCC diagnostic pop")
+#else
+#   define ZVD_DISABLE_WARNING(w)
+#   define ZVD_RESTORE_WARNING()
+#endif
+
+
+#define ZVD_UNUSED(x) ((void)(x))
