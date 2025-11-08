@@ -248,6 +248,8 @@ namespace zvd
 using ZvdUIndex = size_t;
 constexpr ZvdUIndex kZVD_INVALID_INDEX = std::numeric_limits<ZvdUIndex>::max();
 
+using ZvdByte = uint8_t;
+
 constexpr uint8_t  kZVD_BAD_MARKER_U3 = 0x07;
 constexpr uint8_t  kZVD_BAD_MARKER_U8 = 0xFF;
 constexpr uint16_t kZVD_BAD_MARKER_U16 = 0xFFFF;
