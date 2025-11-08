@@ -298,6 +298,8 @@ namespace zvd
 } // namespace zvd
 
 
+#define ZVD_MAKE_BIT_FLAG_VALUE(idxStartBit, nValue) ((nValue)<<(idxStartBit))
+
 //-----------------------------------------------------------------------------
 // Widen predefined macro and stringification support
 #define ZVD_WIDECHAR(x)          ZVD_WIDECHAR_(x)
