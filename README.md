@@ -1,2 +1,2 @@
-# Zv3DArenaEngine
-Simple 3D arena shooter game engine
+# Zv3DCommon
+Library of common used code of Zv3D Engine
