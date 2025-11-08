@@ -258,16 +258,39 @@ namespace zvd
 } // namespace zvd
 
 
+//-----------------------------------------------------------------------------
+// Widen predefined macro and stringification support
+#define ZVD_WIDECHAR(x)          ZVD_WIDECHAR_(x)
+#define ZVD_WIDECHAR_(x)         L ## x
+#define ZVD_NARROWCHAR(x)        x
+
+#define ZVD_STRINGIFY_IMPL(x, t)     ZVD_STRINGIFY_IMPL_(x, t)
+#define ZVD_STRINGIFY_IMPL_(x, t)    t(#x)
+
+#define ZVD_FILE_AND_LINE_(t)  t(__FILE__) t("[") ZVD_STRINGIFY_IMPL(__LINE__, t) t("]")
+
+#ifdef ZVD_DEBUG_CHARTYPE_WIDE
+#   define ZVD_FILE_AND_LINE       ZVD_FILE_AND_LINE_(ZVD_WIDECHAR)
+#   define ZVD_DEBUG_STRINGIFY(x)  ZVD_STRINGIFY_IMPL(x,ZVD_WIDECHAR)
+#else
+#   define ZVD_FILE_AND_LINE       ZVD_FILE_AND_LINE_(ZVD_NARROWCHAR)
+#   define ZVD_DEBUG_STRINGIFY(x)  ZVD_STRINGIFY_IMPL(x,ZVD_NARROWCHAR)
+#endif
+
+#define ZVD_STRINGIFY(x)  ZVD_STRINGIFY_IMPL(x,ZVD_NARROWCHAR)
+#define ZVD_STRINGIFY_W(x)  ZVD_STRINGIFY_IMPL(x,ZVD_WIDECHAR)
+
+
 #ifdef ZVD_PLATFORM_WINDOWS
 
 /** ZVD_T(s) - Windows - specific macro to handle ANSI / Unicode string literals.
 * Expands to L"..." if UNICODE is defined (wide string), otherwise to "..." (narrow string).
 * Only available on Windows, as Linux uses UTF-8 narrow strings exclusively.
-*/ 
+*/
 #   ifdef UNICODE
-#       define ZVD_T(s)    L##s
+#       define ZVD_T(s)    ZVD_WIDECHAR(s)
 #   else
-#       define ZVD_T(s)    s
+#       define ZVD_T(s)    ZVD_NARROWCHAR(s)
 #   endif
 
 #endif
