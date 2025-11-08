@@ -168,17 +168,17 @@ namespace zvd
     // ------------------------------------------------------------------------
 
     template<typename T>
-    constexpr uint8_t GetByte(T value, size_t idx) noexcept 
+    constexpr uint8_t GetByte(T var, size_t idx) noexcept 
     {
-        return ByteAccess<T>{value}.bytes[idx];
+        return ByteAccess<T>{var}.bytes[idx];
     }
 
     template<typename T>
-    constexpr void SetByte(T& value, size_t idx, uint8_t byte) noexcept 
+    constexpr void SetByte(T& v, size_t idx, uint8_t uByteVal) noexcept 
     {
-        ByteAccess<T> access{ value };
-        access.bytes[idx] = byte;
-        value = access.value;
+        ByteAccess<T> byteAccess{ var };
+        byteAccess.bytes[idx] = uByteVal;
+        var = byteAccess.value;
     }
 
     // ------------------------------------------------------------------------
@@ -199,25 +199,27 @@ namespace zvd
     // ------------------------------------------------------------------------
 
     template<typename T>
-    class ByteModifier {
-        T& ref;
+    class ByteModifier 
+    {
+        T& varRef;
     public:
-        explicit ByteModifier(T& value) : ref(value) {}
-        uint8_t get(size_t idx) const { return GetByte(ref, idx); }
-        void set(size_t idx, uint8_t b) { SetByte(ref, idx, b); }
+        explicit ByteModifier(T& value) : varRef(value) {}
+        uint8_t Get(size_t idx) const { return GetByte(varRef, idx); }
+        void Set(size_t idx, uint8_t uByteVal) { SetByte(varRef, idx, uByteVal); }
     };
 
     template<typename T>
-    class WordModifier {
-        T& ref;
+    class WordModifier 
+    {
+        T& varRef;
     public:
-        explicit WordModifier(T& value) : ref(value) {}
-        uint16_t get(size_t idx) const { return GetByte(static_cast<uint16_t>(ref >> (idx * 16)), 0); }
-        void set(size_t idx, uint16_t w) 
+        explicit WordModifier(T& value) : varRef(value) {}
+        uint16_t Get(size_t idx) const { return GetByte(static_cast<uint16_t>(varRef >> (idx * 16)), 0); }
+        void Set(size_t idx, uint16_t uWordVal) 
         {
-            ByteAccess<T> access{ ref };
-            *reinterpret_cast<uint16_t*>(&access.bytes[idx * sizeof(uint16_t)]) = w;
-            ref = access.value;
+            ByteAccess<T> byteAccess{ varRef };
+            *reinterpret_cast<uint16_t*>(&byteAccess.bytes[idx * sizeof(uint16_t)]) = uWordVal;
+            varRef = byteAccess.value;
         }
     };
 
@@ -237,18 +239,18 @@ namespace zvd
 {
 
 #if defined(ZVD_COMPILER_MSVC)
-    inline uint16_t byteswap(uint16_t x) { return _byteswap_ushort(x); }
-    inline uint32_t byteswap(uint32_t x) { return _byteswap_ulong(x); }
-    inline uint64_t byteswap(uint64_t x) { return _byteswap_uint64(x); }
+    inline uint16_t ByteSwap(uint16_t x) { return _byteswap_ushort(x); }
+    inline uint32_t ByteSwap(uint32_t x) { return _byteswap_ulong(x); }
+    inline uint64_t ByteSwap(uint64_t x) { return _byteswap_uint64(x); }
 
 #elif defined(ZVD_COMPILER__GNUC) || defined(ZVD_COMPILER_CLANG)
-    inline uint16_t byteswap(uint16_t x) { return __builtin_bswap16(x); }
-    inline uint32_t byteswap(uint32_t x) { return __builtin_bswap32(x); }
-    inline uint64_t byteswap(uint64_t x) { return __builtin_bswap64(x); }
+    inline uint16_t ByteSwap(uint16_t x) { return __builtin_bswap16(x); }
+    inline uint32_t ByteSwap(uint32_t x) { return __builtin_bswap32(x); }
+    inline uint64_t ByteSwap(uint64_t x) { return __builtin_bswap64(x); }
 
 #else
     // fallback (should never trigger in your setup)
-    inline uint16_t byteswap(uint16_t x) {
+    inline uint16_t ByteSwap(uint16_t x) {
         return (x << 8) | (x >> 8);
     }
 #endif
