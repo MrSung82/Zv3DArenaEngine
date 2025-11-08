@@ -145,7 +145,7 @@ Purpose: blank file for headers.
 // BYTE UTILITIES (little-endian only)
 // ============================================================================
 
-namespace zvd 
+namespace zvd
 {
 
     // Always true for your targets
@@ -156,13 +156,33 @@ namespace zvd
     // ------------------------------------------------------------------------
 
     template<typename T>
-    union ByteAccess 
+    union ByteAccess
     {
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         T value;
         uint8_t bytes[sizeof(T)];
     };
+} // eof zvd
 
+
+template<typename T>
+constexpr uint8_t ZvdGetByte(T var, size_t idx) noexcept
+{
+    return ByteAccess<T>{var}.bytes[idx];
+    
+}
+
+template<typename T>
+constexpr void ZvdSetByte(T& var, size_t idx, uint8_t uByteVal) noexcept
+{
+    ByteAccess<T> byteAccess{ var };
+    byteAccess.bytes[idx] = uByteVal;
+    var = byteAccess.value;
+}
+
+
+namespace zvd
+{
     // ------------------------------------------------------------------------
     // Get / set byte at index (0 = LSB)
     // ------------------------------------------------------------------------
@@ -170,15 +190,13 @@ namespace zvd
     template<typename T>
     constexpr uint8_t GetByte(T var, size_t idx) noexcept 
     {
-        return ByteAccess<T>{var}.bytes[idx];
+        return ZvdGetByte(var, idx);
     }
 
     template<typename T>
-    constexpr void SetByte(T& v, size_t idx, uint8_t uByteVal) noexcept 
+    constexpr void SetByte(T& var, size_t idx, uint8_t uByteVal) noexcept 
     {
-        ByteAccess<T> byteAccess{ var };
-        byteAccess.bytes[idx] = uByteVal;
-        var = byteAccess.value;
+        ZvdSetByte(var, idx, uByteVal);
     }
 
     // ------------------------------------------------------------------------
@@ -225,6 +243,8 @@ namespace zvd
 
 } // namespace zvd
 
+
+
 using ZvdUIndex = size_t;
 constexpr ZvdUIndex kZVD_INVALID_INDEX = std::numeric_limits<ZvdUIndex>::max();
 
@@ -234,26 +254,44 @@ constexpr uint16_t kZVD_BAD_MARKER_U16 = 0xFFFF;
 constexpr uint32_t kZVD_BAD_MARKER_U32 = 0xFFFFFFFFu;
 
 
+#if defined(ZVD_COMPILER_MSVC)
+inline uint16_t ZvdByteSwap(uint16_t x) { return _byteswap_ushort(x); }
+inline uint32_t ZvdByteSwap(uint32_t x) { return _byteswap_ulong(x); }
+inline uint64_t ZvdByteSwap(uint64_t x) { return _byteswap_uint64(x); }
+
+#elif defined(ZVD_COMPILER_GCC) || defined(ZVD_COMPILER_CLANG)
+inline uint16_t ZvdByteSwap(uint16_t x) { return __builtin_bswap16(x); }
+inline uint32_t ZvdByteSwap(uint32_t x) { return __builtin_bswap32(x); }
+inline uint64_t ZvdByteSwap(uint64_t x) { return __builtin_bswap64(x); }
+
+#else
+// fallback (should never trigger in your setup)
+inline uint16_t ZvdByteSwap(uint16_t x) 
+{
+    return (x << 8) | (x >> 8);
+}
+
+inline uint32_t ZvdByteSwap(uint32_t x)
+{
+    return (x << 24) | (x >> 24) | (0x0000FF00 & (x >> 8)) | (0x00FF0000 & (x << 8));
+}
+
+inline uint64_t ZvdByteSwap(uint64_t x)
+{
+    ByteAccess<uint64_t> byteAccess{x};
+    for (size_t i = 0; i < 4; ++i)
+    {
+        std::swap(byteAccess.bytes[i], byteAccess.bytes[7 - i]);
+    }
+    return byteAccess.value;
+}
+#endif
 
 namespace zvd 
 {
-
-#if defined(ZVD_COMPILER_MSVC)
-    inline uint16_t ByteSwap(uint16_t x) { return _byteswap_ushort(x); }
-    inline uint32_t ByteSwap(uint32_t x) { return _byteswap_ulong(x); }
-    inline uint64_t ByteSwap(uint64_t x) { return _byteswap_uint64(x); }
-
-#elif defined(ZVD_COMPILER__GNUC) || defined(ZVD_COMPILER_CLANG)
-    inline uint16_t ByteSwap(uint16_t x) { return __builtin_bswap16(x); }
-    inline uint32_t ByteSwap(uint32_t x) { return __builtin_bswap32(x); }
-    inline uint64_t ByteSwap(uint64_t x) { return __builtin_bswap64(x); }
-
-#else
-    // fallback (should never trigger in your setup)
-    inline uint16_t ByteSwap(uint16_t x) {
-        return (x << 8) | (x >> 8);
-    }
-#endif
+    inline uint16_t ByteSwap(uint16_t x) { return ZvdByteSwap(x); }
+    inline uint32_t ByteSwap(uint32_t x) { return ZvdByteSwap(x); }
+    inline uint64_t ByteSwap(uint64_t x) { return ZvdByteSwap(x); }
 
 } // namespace zvd
 
