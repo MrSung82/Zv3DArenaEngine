@@ -146,3 +146,14 @@ Purpose: blank file for headers.
 #if defined(ZVD_BIG_ENDIAN)
 #	error "Big-endian platforms are not supported"
 #endif
+
+
+//-----------------------------------------------------------------------------
+// Macro utils
+#if defined(ZVD_PLATFORM_WINDOWS)
+
+#define ZVD_ALIGN_OF(T) __alignof(T)
+#define ZVD_ALIGN_CLASS_BEGIN(T) __declspec(align(T))
+#define ZVD_ALIGN_CLASS_END(T)
+
+#endif // eof Platform OS dependent macro utils

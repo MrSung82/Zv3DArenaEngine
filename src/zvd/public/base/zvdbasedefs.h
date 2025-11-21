@@ -336,3 +336,9 @@ namespace zvd
 #   endif
 
 #endif
+
+
+//-----------------------------------------------------------------------------
+// Some helper types
+using ZvdVoidPtr = void*;
+using ZvdCVoidPtr = const void*;
