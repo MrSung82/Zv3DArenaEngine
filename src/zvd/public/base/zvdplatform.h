@@ -130,6 +130,9 @@ Purpose: blank file for headers.
 #define ZVD_MIN_MALLOC_ALIGNMENT (ZVD_PTR_SIZE * 2)
 #endif
 
+#if defined(ZVD_ARCH_X86_64) || defined(ZVD_ARCH_ARM64)
+#   define ZVD_64_BIT_PROCESSOR 1
+#endif
 
 // Cache line (conservative)
 #if defined(ZVD_ARCH_X86_64) || defined(ZVD_ARCH_ARM64)

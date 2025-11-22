@@ -141,165 +141,6 @@ Purpose: blank file for headers.
 #endif
 
 
-// ============================================================================
-// BYTE UTILITIES (little-endian only)
-// ============================================================================
-
-namespace zvd
-{
-
-    // Always true for your targets
-    static constexpr bool kIsLittleEndian = true;
-
-    // ------------------------------------------------------------------------
-    // Low-level byte access via union (safe, no UB for trivial types)
-    // ------------------------------------------------------------------------
-
-    template<typename T>
-    union ByteAccess
-    {
-        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
-        T value;
-        uint8_t bytes[sizeof(T)];
-    };
-} // eof zvd
-
-
-template<typename T>
-constexpr uint8_t ZvdGetByte(T var, size_t idx) noexcept
-{
-    return ByteAccess<T>{var}.bytes[idx];
-    
-}
-
-template<typename T>
-constexpr void ZvdSetByte(T& var, size_t idx, uint8_t uByteVal) noexcept
-{
-    ByteAccess<T> byteAccess{ var };
-    byteAccess.bytes[idx] = uByteVal;
-    var = byteAccess.value;
-}
-
-
-namespace zvd
-{
-    // ------------------------------------------------------------------------
-    // Get / set byte at index (0 = LSB)
-    // ------------------------------------------------------------------------
-
-    template<typename T>
-    constexpr uint8_t GetByte(T var, size_t idx) noexcept 
-    {
-        return ZvdGetByte(var, idx);
-    }
-
-    template<typename T>
-    constexpr void SetByte(T& var, size_t idx, uint8_t uByteVal) noexcept 
-    {
-        ZvdSetByte(var, idx, uByteVal);
-    }
-
-    // ------------------------------------------------------------------------
-    // High/Low helpers (for common types)
-    // ------------------------------------------------------------------------
-
-    inline constexpr uint8_t LoByte(uint16_t v) noexcept { return static_cast<uint8_t>(v); }
-    inline constexpr uint8_t HiByte(uint16_t v) noexcept { return static_cast<uint8_t>(v >> 8); }
-
-    inline constexpr uint16_t LoWord(uint32_t v) noexcept { return static_cast<uint16_t>(v); }
-    inline constexpr uint16_t HiWord(uint32_t v) noexcept { return static_cast<uint16_t>(v >> 16); }
-
-    inline constexpr uint32_t LoDword(uint64_t v) noexcept { return static_cast<uint32_t>(v); }
-    inline constexpr uint32_t HiDword(uint64_t v) noexcept { return static_cast<uint32_t>(v >> 32); }
-
-    // ------------------------------------------------------------------------
-    // Modifier classes (type-safe, no macros)
-    // ------------------------------------------------------------------------
-
-    template<typename T>
-    class ByteModifier 
-    {
-        T& varRef;
-    public:
-        explicit ByteModifier(T& value) : varRef(value) {}
-        uint8_t Get(size_t idx) const { return GetByte(varRef, idx); }
-        void Set(size_t idx, uint8_t uByteVal) { SetByte(varRef, idx, uByteVal); }
-    };
-
-    template<typename T>
-    class WordModifier 
-    {
-        T& varRef;
-    public:
-        explicit WordModifier(T& value) : varRef(value) {}
-        uint16_t Get(size_t idx) const { return GetByte(static_cast<uint16_t>(varRef >> (idx * 16)), 0); }
-        void Set(size_t idx, uint16_t uWordVal) 
-        {
-            ByteAccess<T> byteAccess{ varRef };
-            *reinterpret_cast<uint16_t*>(&byteAccess.bytes[idx * sizeof(uint16_t)]) = uWordVal;
-            varRef = byteAccess.value;
-        }
-    };
-
-} // namespace zvd
-
-
-
-using ZvdUIndex = size_t;
-constexpr ZvdUIndex kZVD_INVALID_INDEX = std::numeric_limits<ZvdUIndex>::max();
-
-using ZvdByte = uint8_t;
-
-constexpr uint8_t  kZVD_BAD_MARKER_U3 = 0x07;
-constexpr uint8_t  kZVD_BAD_MARKER_U8 = 0xFF;
-constexpr uint16_t kZVD_BAD_MARKER_U16 = 0xFFFF;
-constexpr uint32_t kZVD_BAD_MARKER_U32 = 0xFFFFFFFFu;
-
-
-#if defined(ZVD_COMPILER_MSVC)
-inline uint16_t ZvdByteSwap(uint16_t x) { return _byteswap_ushort(x); }
-inline uint32_t ZvdByteSwap(uint32_t x) { return _byteswap_ulong(x); }
-inline uint64_t ZvdByteSwap(uint64_t x) { return _byteswap_uint64(x); }
-
-#elif defined(ZVD_COMPILER_GCC) || defined(ZVD_COMPILER_CLANG)
-inline uint16_t ZvdByteSwap(uint16_t x) { return __builtin_bswap16(x); }
-inline uint32_t ZvdByteSwap(uint32_t x) { return __builtin_bswap32(x); }
-inline uint64_t ZvdByteSwap(uint64_t x) { return __builtin_bswap64(x); }
-
-#else
-// fallback (should never trigger in your setup)
-inline uint16_t ZvdByteSwap(uint16_t x) 
-{
-    return (x << 8) | (x >> 8);
-}
-
-inline uint32_t ZvdByteSwap(uint32_t x)
-{
-    return (x << 24) | (x >> 24) | (0x0000FF00 & (x >> 8)) | (0x00FF0000 & (x << 8));
-}
-
-inline uint64_t ZvdByteSwap(uint64_t x)
-{
-    ByteAccess<uint64_t> byteAccess{x};
-    for (size_t i = 0; i < 4; ++i)
-    {
-        std::swap(byteAccess.bytes[i], byteAccess.bytes[7 - i]);
-    }
-    return byteAccess.value;
-}
-#endif
-
-namespace zvd 
-{
-    inline uint16_t ByteSwap(uint16_t x) { return ZvdByteSwap(x); }
-    inline uint32_t ByteSwap(uint32_t x) { return ZvdByteSwap(x); }
-    inline uint64_t ByteSwap(uint64_t x) { return ZvdByteSwap(x); }
-
-} // namespace zvd
-
-
-#define ZVD_MAKE_BIT_FLAG_VALUE(idxStartBit, nValue) ((nValue)<<(idxStartBit))
-
 //-----------------------------------------------------------------------------
 // Widen predefined macro and stringification support
 #define ZVD_WIDECHAR(x)          ZVD_WIDECHAR_(x)
@@ -340,5 +181,23 @@ namespace zvd
 
 //-----------------------------------------------------------------------------
 // Some helper types
+
+/// @brief Struct which used in templates programming as tag
+struct ZvdsDefaultTag {};
+
 using ZvdVoidPtr = void*;
 using ZvdCVoidPtr = const void*;
+
+using ZvdUIndex = size_t;
+constexpr ZvdUIndex kZVD_INVALID_INDEX = std::numeric_limits<ZvdUIndex>::max();
+
+using ZvdByte = uint8_t;
+using ZvdTwoBytes = uint16_t;
+
+constexpr uint8_t  kZVD_BAD_MARKER_U3 = 0x07;
+constexpr uint8_t  kZVD_BAD_MARKER_U8 = 0xFF;
+constexpr uint16_t kZVD_BAD_MARKER_U16 = 0xFFFF;
+constexpr uint32_t kZVD_BAD_MARKER_U32 = 0xFFFFFFFFu;
+
+
+#define ZVD_MAKE_BIT_FLAG_VALUE(idxStartBit, nValue) ((nValue)<<(idxStartBit))
