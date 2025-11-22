@@ -76,14 +76,14 @@ Purpose: blank file for headers.
 #	define ZVD_PLATFORM_DESKTOP 1
 // _WIN64 is defined by MSVC, GCC, and Clang when targeting 64-bit Windows.
 // It is only set in 64-bit builds (x64 or ARM64), never in 32-bit.
-// Always check _WIN32 first — _WIN64 implies _WIN32.
+// Always check _WIN32 first ï¿½ _WIN64 implies _WIN32.
 #	ifdef _WIN64
 #		define ZVD_PLATFORM_WINDOWS64 1
 #	else
 #		define ZVD_PLATFORM_WINDOWS32 1
 #	endif
 
-// MinGW (Minimalist GNU for Windows) — GCC-based toolchain targeting native Windows.
+// MinGW (Minimalist GNU for Windows) ï¿½ GCC-based toolchain targeting native Windows.
 // Treated as a desktop environment since it produces standard Windows executables.
 #	if defined(__MINGW32__) || defined(__MINGW64__)
 #		define ZVD_PLATFORM_MINGW 1
@@ -155,5 +155,11 @@ Purpose: blank file for headers.
 #define ZVD_ALIGN_OF(T) __alignof(T)
 #define ZVD_ALIGN_CLASS_BEGIN(T) __declspec(align(T))
 #define ZVD_ALIGN_CLASS_END(T)
+
+#elif defined(ZVD_PLATFORM_LINUX)
+
+#define ZVD_ALIGN_OF(T) __alignof__(T)
+#define ZVD_ALIGN_CLASS_BEGIN(T)
+#define ZVD_ALIGN_CLASS_END(T) __attribute__((aligned(T)))
 
 #endif // eof Platform OS dependent macro utils
