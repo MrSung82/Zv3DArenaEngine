@@ -52,6 +52,7 @@ Purpose: blank file for headers.
 #if defined (ZVD_PLATFORM_LINUX)
 
 typedef ZvdVoidPtr  (ZVD_CDECL* Zvdfpt_aligned_malloc)(size_t nBoundary, size_t nBytes);
+typedef ZvdVoidPtr	(ZVD_CDECL* Zvdfpt_malloc)(size_t nBytes);
 typedef ZvdVoidPtr  (ZVD_CDECL* Zvdfpt_realloc)(ZvdVoidPtr pMemblock, size_t nBytes);
 typedef void        (ZVD_CDECL* Zvdfpt_free)(ZvdVoidPtr pMemblock);
 

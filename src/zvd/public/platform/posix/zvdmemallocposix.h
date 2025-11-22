@@ -51,6 +51,8 @@ Purpose: blank file for headers.
 #if defined (ZVD_PLATFORM_LINUX)
 
 extern Zvdfpt_aligned_malloc Zvdfp_aligned_malloc;
+
+extern Zvdfpt_malloc Zvdfp_malloc;
 extern Zvdfpt_realloc Zvdfp_realloc;
 extern Zvdfpt_free Zvdfp_free;
 
